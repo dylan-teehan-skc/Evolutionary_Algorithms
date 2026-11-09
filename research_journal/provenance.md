@@ -42,3 +42,21 @@ Selection: Use tournament by default
 For now we want to use a simpler library for as librarys like gatree will do most of the work for us and abstract a lot of the complexity from us. So the library we will be using is treelib. Its a simple tree library that we can use for our genomes.
 
 https://treelib.readthedocs.io/en/latest/
+
+## Architecture diagrams
+
+We split the code into three layers. main.py picks the operators and hands them to the evolution loop, so we don't have to change the loop when we move from bit lists to trees.
+
+![Architecture layers](../design_docs/figures/architecture_layers.png)
+
+This is what happens in one run. We score everyone and check if we should stop. If not, we keep the elites and breed children until the population is full, then go again.
+
+![One run of evolve](../design_docs/figures/evolve_loop.png)
+
+This is our GA as it is now. Each stage has its own file, and main.py passes each function into evolve.
+
+![Current GA modules](../design_docs/figures/ga_module_uml.png)
+
+This is our plan for the GP. evolve and tournament selection stay the same, but we need new versions of the other operators. tree.py and treelib will handle the trees.
+
+![Planned GP modules](../design_docs/figures/gp_target_uml.png)
