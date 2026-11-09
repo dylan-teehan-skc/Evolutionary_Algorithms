@@ -1,3 +1,5 @@
+algorithm: gp # ga or gp
+
 initialisation:
   bitstrings:
     length: 100
@@ -13,4 +15,20 @@ evolution:
   crossover_rate: 0.9
   mutation_rate: 0.05
   elites: 1
-  target_fitness: 100
+
+target_fitness:
+  ga: 100
+  gp: 0
+
+points:
+  - [-5, 520]
+  - [-4, 204]
+  - [-3, 60]
+  - [-2, 10]
+  - [-1, 0]
+  - [0, 0]
+  - [1, 4]
+  - [2, 30]
+  - [3, 120]
+  - [4, 340]
+  - [5, 780]

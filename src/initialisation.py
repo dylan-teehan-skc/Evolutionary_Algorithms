@@ -1,6 +1,6 @@
 import random
 
-from ea.tree import random_tree
+from src.tree import random_tree
 
 
 def random_bitstrings(population_size, length):
