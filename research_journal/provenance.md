@@ -38,3 +38,7 @@ Pick a particular data structure you want to use (tree based)
 
 https://gatree.readthedocs.io/en/latest/
 Selection: Use tournament by default
+
+For now we want to use a simpler library for as librarys like gatree will do most of the work for us and abstract a lot of the complexity from us. So the library we will be using is treelib. Its a simple tree library that we can use for our genomes.
+
+https://treelib.readthedocs.io/en/latest/
