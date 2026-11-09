@@ -1,0 +1,12 @@
+[project]
+name = "evolutionary-algorithms"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.10.1",
+]
