@@ -16,7 +16,7 @@ def main():
     config = yaml.safe_load(config_path.read_text())
 
     best = evolve(
-        initialise=partial(random_bitstrings, **config["initialisation"]),
+        initialise=partial(random_bitstrings, **config["initialisation"]["bitstrings"]),
         fitness=one_max,
         select=partial(tournament_selection, **config["selection"]),
         crossover=one_point_crossover,

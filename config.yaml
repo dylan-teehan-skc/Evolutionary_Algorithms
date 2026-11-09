@@ -1,5 +1,8 @@
 initialisation:
-  length: 100
+  bitstrings:
+    length: 100
+  trees:
+    max_tree_depth: 4
 
 selection:
   tournament_size: 3
