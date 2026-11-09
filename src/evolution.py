@@ -16,6 +16,7 @@ def evolve(
 ):
     # crossover and mutate must return new individuals, because parents and elites are shared
     population = initialise(population_size)
+    history = []  # best fitness per generation, i.e. the convergence curve
 
     for generation in range(generations + 1):
         fitness_scores = [fitness(individual) for individual in population]
@@ -24,11 +25,11 @@ def evolve(
         )
         best = population[ranked[0]]
         best_score = fitness_scores[ranked[0]]
-        print(generation, best_score)
+        history.append(best_score)
 
         solved = target_fitness is not None and best_score >= target_fitness
         if solved or generation == generations:
-            return best
+            return best, history
 
         next_population = [population[i] for i in ranked[:elites]]
 

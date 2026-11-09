@@ -10,7 +10,8 @@ Both modes share the same evolution loop and selection operators. Only the repre
 ## Project structure
 
 ```
-main.py               Entry point: loads config.yaml and calls the runner
+main.py               Entry point: one run of config.yaml
+experiment.py         Repeated runs over many seeds, with summary stats and CSV output
 config.yaml           All run settings (algorithm, operators, parameters, data)
 src/
   runner.py           Picks the operators for GA or GP and starts the run
@@ -64,6 +65,7 @@ Run settings live in `config.yaml`:
 |---|---|
 | `algorithm` | `ga` or `gp` |
 | `seed` | Random seed. The same seed and config always give the same run |
+| `runs` | Number of seeds `experiment.py` runs, starting from `seed` |
 | `initialisation.bitstrings.length` | GA: number of bits per individual |
 | `initialisation.trees.max_tree_depth` | GP: maximum tree depth, used by initialisation, crossover and mutation |
 | `selection.method` | `tournament` or `roulette` |
@@ -111,4 +113,23 @@ Every run is seeded from `seed` in `config.yaml`, and the seed is printed at the
 
 The seed works because every operator draws from Python's global `random` module, which `src/runner.py` seeds once before the run starts. Any new operator must use `random` too (not NumPy or `random.Random()` instances) or runs stop being reproducible.
 
-Repeated runs (30+ seeds per configuration) and benchmark scripts are still to be added.
+### Repeated runs
+
+```bash
+uv run experiment.py
+```
+
+This runs the current `config.yaml` once per seed, using seeds `seed`, `seed + 1`, ..., `seed + runs - 1` (42 to 71 by default). It prints a summary and writes two CSV files to `results/`, named after the algorithm and selection method:
+
+| File | Contents |
+|---|---|
+| `<algorithm>_<selection>.csv` | One row per run: seed, final best fitness, generations used, whether the target was reached, best individual |
+| `<algorithm>_<selection>_convergence.csv` | One row per run per generation: seed, generation, best fitness so far (the convergence curve) |
+
+Summary statistics are taken over each run's final best fitness:
+
+- `best`, `worst`, `mean`, `median` and `stdev`
+- `success_rate`: the fraction of runs that reached `target_fitness`
+- `mean_evals_to_target`: the average number of fitness evaluations successful runs needed, counting generation 0 as one population's worth
+
+To compare configurations, change `config.yaml` (for example `selection.method`) and run it again. Each configuration writes to its own file.

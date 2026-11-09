@@ -43,18 +43,33 @@ def selection(config):
     return partial(SELECTIONS[method], **config["selection"].get(method, {}))
 
 
-def run(config):
+def run_once(config, seed):
     # every operator uses the global random module, so one seed fixes the whole run
-    random.seed(config["seed"])
-    print("Seed:", config["seed"])
+    random.seed(seed)
     algorithm = config["algorithm"]
     operators, describe = ALGORITHMS[algorithm](config)
+    target = config["target_fitness"][algorithm]
 
-    best = evolve(
+    best, history = evolve(
         select=selection(config),
-        target_fitness=config["target_fitness"][algorithm],
+        target_fitness=target,
         **operators,
         **config["evolution"],
     )
-    print("Best:", describe(best))
-    print("Fitness:", operators["fitness"](best))
+    return {
+        "seed": seed,
+        "best": describe(best),
+        "fitness": history[-1],  # evolve returns the best of the last generation scored
+        "generations": len(history) - 1,
+        "solved": history[-1] >= target,
+        "history": history,
+    }
+
+
+def run(config):
+    result = run_once(config, config["seed"])
+    print("Seed:", result["seed"])
+    for generation, score in enumerate(result["history"]):
+        print(generation, score)
+    print("Best:", result["best"])
+    print("Fitness:", result["fitness"])

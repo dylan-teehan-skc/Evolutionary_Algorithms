@@ -1,5 +1,6 @@
 algorithm: gp # ga or gp
 seed: 42 # same seed + same config = same run
+runs: 30 # experiment.py runs seeds seed, seed+1, ..., seed+runs-1
 
 initialisation:
   bitstrings:
