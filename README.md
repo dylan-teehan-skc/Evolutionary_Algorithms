@@ -63,6 +63,7 @@ Run settings live in `config.yaml`:
 | Key | Meaning |
 |---|---|
 | `algorithm` | `ga` or `gp` |
+| `seed` | Random seed. The same seed and config always give the same run |
 | `initialisation.bitstrings.length` | GA: number of bits per individual |
 | `initialisation.trees.max_tree_depth` | GP: maximum tree depth, used by initialisation, crossover and mutation |
 | `selection.method` | `tournament` or `roulette` |
@@ -81,21 +82,23 @@ The GP function set (`+`, `-`, `*`) and terminal set (`x`, `1.0`) are defined at
 
 ## Output
 
-Each generation prints one line: the generation number and the best fitness in the population.
+The run first prints the seed it used. Then each generation prints one line: the generation number and the best fitness in the population.
 
 ```
-0 -425.0
-1 -30.0
-2 -30.0
-...
+Seed: 42
+0 -480
+1 -480
+2 0.0
 ```
 
 When the run finishes, by reaching the target fitness or the last generation, it prints the best individual and its fitness:
 
 ```
-Best: ((1.0 + x) * (((x * x) * (1.0 * x)) + ((x + 1.0) - 1.0)))
+Best: (((1.0 + (x * x)) * (x * (1.0 + x))) * 1.0)
 Fitness: 0.0
 ```
+
+This is the exact output of the default `config.yaml` (GP, seed 42).
 
 How to read the fitness:
 
@@ -104,4 +107,8 @@ How to read the fitness:
 
 ## Reproducing results
 
-Runs are currently **not seeded**, so each run gives different results. Seeding, repeated runs and benchmark scripts are still to be added. This section will document them once they exist.
+Every run is seeded from `seed` in `config.yaml`, and the seed is printed at the start of the output. To reproduce a run, use the same `config.yaml` with the same `seed`, and run `uv run main.py` with the dependency versions pinned in `uv.lock`. The output will match line for line.
+
+The seed works because every operator draws from Python's global `random` module, which `src/runner.py` seeds once before the run starts. Any new operator must use `random` too (not NumPy or `random.Random()` instances) or runs stop being reproducible.
+
+Repeated runs (30+ seeds per configuration) and benchmark scripts are still to be added.

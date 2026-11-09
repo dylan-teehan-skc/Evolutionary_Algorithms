@@ -1,4 +1,5 @@
 algorithm: gp # ga or gp
+seed: 42 # same seed + same config = same run
 
 initialisation:
   bitstrings:

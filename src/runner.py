@@ -1,3 +1,4 @@
+import random
 from functools import partial
 
 from src.crossover import one_point_crossover, subtree_crossover
@@ -43,6 +44,9 @@ def selection(config):
 
 
 def run(config):
+    # every operator uses the global random module, so one seed fixes the whole run
+    random.seed(config["seed"])
+    print("Seed:", config["seed"])
     algorithm = config["algorithm"]
     operators, describe = ALGORITHMS[algorithm](config)
 
