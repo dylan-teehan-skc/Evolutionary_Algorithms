@@ -3,11 +3,6 @@ import random
 from src.tree import graft
 
 
-def one_point_crossover(parent_a, parent_b):
-    cut = random.randint(1, len(parent_a) - 1)
-    return (parent_a[:cut] + parent_b[cut:], parent_b[:cut] + parent_a[cut:])
-
-
 def subtree_crossover(parent_a, parent_b, max_tree_depth):
     node_a = random.choice(list(parent_a.nodes))
     node_b = random.choice(list(parent_b.nodes))

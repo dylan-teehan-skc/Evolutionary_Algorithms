@@ -54,9 +54,7 @@ if __name__ == "__main__":
         results.append(result)
         print(f"seed {seed}: fitness {result['fitness']} after {result['generations']} generations")
 
-    name = f"{config['algorithm']}_{config['selection']['method']}"
-    if config["algorithm"] == "gp":
-        name += f"_{config['problem']}"
+    name = f"gp_{config['selection']['method']}_{config['problem']}"
     path = Path(__file__).with_name("results") / f"{name}.csv"
     convergence = write_results(results, path)
 

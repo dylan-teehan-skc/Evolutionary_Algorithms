@@ -6,10 +6,6 @@ from src.tree import PRIMITIVES
 MAX_ERROR = 1e12
 
 
-def one_max(bits):
-    return sum(bits)
-
-
 def evaluate(tree, inputs, node_id=None):
     node_id = tree.root if node_id is None else node_id
     symbol = tree[node_id].data

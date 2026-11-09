@@ -5,12 +5,6 @@ from treelib import Tree
 from src.tree import FUNCTIONS, TERMINALS
 
 
-def bit_flip_mutation(bits):
-    mutated = bits[:]
-    mutated[random.randrange(len(mutated))] ^= 1
-    return mutated
-
-
 def grow_mutation(tree, max_tree_depth):
     mutated = Tree(tree, deep=True)
     leaf = random.choice(mutated.leaves())
