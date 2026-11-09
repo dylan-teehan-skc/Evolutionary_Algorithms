@@ -12,8 +12,9 @@ def evolve(
     crossover_rate,
     mutation_rate,
     elites,
-    target_fitness=None,
+    is_solved=None,
 ):
+    # is_solved(individual) -> bool stops the run early; None means always run every generation
     # crossover and mutate must return new individuals, because parents and elites are shared
     population = initialise(population_size)
     history = []  # best fitness per generation, i.e. the convergence curve
@@ -27,7 +28,7 @@ def evolve(
         best_score = fitness_scores[ranked[0]]
         history.append(best_score)
 
-        solved = target_fitness is not None and best_score >= target_fitness
+        solved = is_solved is not None and is_solved(best)
         if solved or generation == generations:
             return best, history
 

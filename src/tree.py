@@ -1,9 +1,31 @@
+import math
+import operator
 import random
 
 from treelib import Tree
 
-FUNCTIONS = {"+": 2, "-": 2, "*": 2}  # symbol -> arity
-TERMINALS = ["x", 1.0]
+
+def protected_div(a, b):
+    return a / b if b != 0 else 1.0  # Koza (1992): x/0 = 1 so every tree can be evaluated
+
+
+def protected_log(a):
+    return math.log(abs(a)) if a != 0 else 0.0  # log|x|, defined for negatives and 0
+
+
+# The Nguyen function and terminal sets (Uy et al. 2011): symbol -> (arity, implementation)
+PRIMITIVES = {
+    "+": (2, operator.add),
+    "-": (2, operator.sub),
+    "*": (2, operator.mul),
+    "/": (2, protected_div),
+    "sin": (1, math.sin),
+    "cos": (1, math.cos),
+    "exp": (1, math.exp),
+    "log": (1, protected_log),
+}
+FUNCTIONS = {symbol: arity for symbol, (arity, _) in PRIMITIVES.items()}
+TERMINALS = ["x"]
 
 
 def random_tree(max_depth, full):
@@ -66,5 +88,8 @@ def to_expression(tree, node_id=None):
     children = tree.children(node_id)
     if not children:
         return tree[node_id].tag
-    left, right = (to_expression(tree, c.identifier) for c in children)
+    arguments = [to_expression(tree, c.identifier) for c in children]
+    if len(arguments) == 1:
+        return f"{tree[node_id].tag}({arguments[0]})"
+    left, right = arguments
     return f"({left} {tree[node_id].tag} {right})"

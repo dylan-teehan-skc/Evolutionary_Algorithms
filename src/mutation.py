@@ -21,6 +21,7 @@ def grow_mutation(tree, max_tree_depth):
             terminal = random.choice(TERMINALS)
             mutated.create_node(str(terminal), parent=leaf.identifier, data=terminal)
     else:
-        leaf.data = random.choice([t for t in TERMINALS if t != leaf.data])
+        # swap for a different terminal; with a single terminal there is nothing to swap to
+        leaf.data = random.choice([t for t in TERMINALS if t != leaf.data] or TERMINALS)
     leaf.tag = str(leaf.data)
     return mutated

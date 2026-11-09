@@ -1,6 +1,7 @@
 algorithm: gp # ga or gp
 seed: 42 # same seed + same config = same run
 runs: 30 # experiment.py runs seeds seed, seed+1, ..., seed+runs-1
+problem: nguyen-1 # GP benchmark: nguyen-1, nguyen-2, nguyen-5, nguyen-7
 
 initialisation:
   bitstrings:
@@ -20,19 +21,6 @@ evolution:
   mutation_rate: 0.05
   elites: 1
 
-target_fitness:
-  ga: 100
-  gp: 0
-
-points:
-  - [-5, 520]
-  - [-4, 204]
-  - [-3, 60]
-  - [-2, 10]
-  - [-1, 0]
-  - [0, 0]
-  - [1, 4]
-  - [2, 30]
-  - [3, 120]
-  - [4, 340]
-  - [5, 780]
+success: # a run that meets this stops early and counts as a success
+  ga: 100 # best fitness reaches this (OneMax: all bits 1)
+  gp: 0.01 # every point's absolute error is below this, the "hit" rule of Uy et al. (2011)
