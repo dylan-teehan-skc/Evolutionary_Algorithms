@@ -60,3 +60,38 @@ This is our GA as it is now. Each stage has its own file, and main.py passes eac
 This is our plan for the GP. evolve and tournament selection stay the same, but we need new versions of the other operators. tree.py and treelib will handle the trees.
 
 ![Planned GP modules](../design_docs/figures/gp_target_uml.png)
+
+## Making selection extensible
+
+At first selection was hardcoded. runner.py always used tournament selection and passed the whole `selection` block of config.yaml straight into it. That was fine with one method, but we want to try others, like roulette, without touching the evolution loop or rewriting the runner every time.
+
+So we changed config.yaml to name the method and give each method its own block of settings:
+
+```yaml
+selection:
+  method: tournament # tournament or roulette
+  tournament:
+    tournament_size: 3
+```
+
+In runner.py, a `SELECTIONS` dictionary maps each name to its function, the same pattern we already use for `ALGORITHMS` (ga or gp). The `selection(config)` function looks up the method and passes it only that method's settings. A method with no settings, like roulette, doesn't need a block at all. Every selection function has the same signature, `(population, fitness_scores)` plus its own settings, so evolve.py doesn't care which one it gets.
+
+Adding a new method now takes three steps:
+
+1. Write the function in selection.py.
+2. Add it to `SELECTIONS` in runner.py.
+3. Set `method:` in config.yaml.
+
+### Roulette selection
+
+Roulette (fitness proportionate) selection picks each individual with probability proportional to its fitness. The textbook version assumes all fitness is positive, but our GP fitness is negative error, where 0 is perfect and everything else is below zero. To make one function work for both GA and GP, we shift the scores so the worst individual scores 0 and use those as the weights. If everyone has the same fitness, all the weights are 0, so we pick uniformly instead.
+
+We checked that it picks with the right probabilities. With scores of [-10, -5, 0] the weights are 0, 5 and 10, and over 30,000 picks we got roughly 0%, 33% and 67%, as expected.
+
+What we noticed when comparing it to tournament:
+
+- **GP:** roulette still found an exact fit to our points, `(x + 1)(x³ + x)`, with fitness 0.
+- **GA (OneMax):** roulette got to 99 out of 100 in 50 generations, while tournament got to 100. This is a known weakness of roulette. Near the end, when everyone's fitness is close (98, 99, 100), the best individual is barely more likely to be picked than the rest, so selection pressure fades. Tournament only cares about who is better, not by how much, so it doesn't have this problem.
+- Because of the shift, the worst individual in each generation can never be picked.
+
+We're keeping tournament as the default for both GA and GP.
