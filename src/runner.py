@@ -33,6 +33,13 @@ def gp_operators(config):
 
 
 ALGORITHMS = {"ga": ga_operators, "gp": gp_operators}
+SELECTIONS = {"tournament": tournament_selection}
+
+
+def selection(config):
+    method = config["selection"]["method"]
+    # each method reads only its own block, so a method with no settings needs no block
+    return partial(SELECTIONS[method], **config["selection"].get(method, {}))
 
 
 def run(config):
@@ -40,7 +47,7 @@ def run(config):
     operators, describe = ALGORITHMS[algorithm](config)
 
     best = evolve(
-        select=partial(tournament_selection, **config["selection"]),
+        select=selection(config),
         target_fitness=config["target_fitness"][algorithm],
         **operators,
         **config["evolution"],
