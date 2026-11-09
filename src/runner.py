@@ -5,7 +5,7 @@ from src.evolution import evolve
 from src.fitness import negative_error, one_max
 from src.initialisation import ramped_half_and_half, random_bitstrings
 from src.mutation import bit_flip_mutation, grow_mutation
-from src.selection import tournament_selection
+from src.selection import roulette_selection, tournament_selection
 from src.tree import to_expression
 
 
@@ -33,7 +33,7 @@ def gp_operators(config):
 
 
 ALGORITHMS = {"ga": ga_operators, "gp": gp_operators}
-SELECTIONS = {"tournament": tournament_selection}
+SELECTIONS = {"tournament": tournament_selection, "roulette": roulette_selection}
 
 
 def selection(config):

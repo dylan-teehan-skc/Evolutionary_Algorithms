@@ -7,7 +7,7 @@ initialisation:
     max_tree_depth: 4
 
 selection:
-  method: tournament # tournament
+  method: tournament # tournament or roulette
   tournament:
     tournament_size: 3
 
