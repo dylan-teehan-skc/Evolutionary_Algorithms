@@ -109,3 +109,60 @@ In the paper, each creature's genotype is a directed graph. The graph describes 
 This ties in with what we already have. Like our GP trees, the genotype is a structure, not a fixed-length array, so evolution finds the shape itself rather than just tuning parameters. Our evolution loop and selection would stay the same. We'd need new representation, crossover, mutation and fitness code, and a physics simulation to measure fitness.
 
 We haven't decided yet, but it's an interesting avenue for us to go down.
+
+## Our idea: a stick figure climbing a ladder
+
+Instead of evolving a whole creature like Sims, we're starting with something smaller: a 2D stick figure that learns to climb a ladder.
+
+- **The body is fixed.** We design it by hand: a torso and two arms, each with an upper and lower segment, connected by joint motors. The legs are only for looks in the first version.
+- **The ladder** is a set of rungs that the hands can grip.
+- **Climbing** means alternating hands: one hand holds a rung while the other reaches for the next rung up, then the body pulls itself up.
+- **The GA evolves only the controller**, not the body. The controller is a hand-designed four-phase state machine, and the GA tunes its numbers (joint targets, phase durations and motor gains).
+- **Fitness is how high the torso gets**, but only through real physical motion and valid grips. The body can't be teleported upwards.
+
+The physics runs in Pymunk. A Pygame window is only for watching a run, not for scoring it.
+
+![Robot and ladder model](../design_docs/figures/robot_ladder_model.png)
+
+The two papers below back up the two main choices in this design: fixing the body and evolving only the controller, and making the fitness function hard to cheat.
+
+## Supporting papers for our design
+
+### Fixing the body and evolving the controller
+
+Gallagher et al. (1996), *Application of evolved locomotion controllers to a hexapod robot*.
+
+https://www.sciencedirect.com/science/article/pii/S092188909600036X
+
+Gallagher et al. (1996) showed that a GA evolving only the controller of a fixed, hand-designed body can produce effective locomotion. Their hexapod's body was designed by hand and never changed, and the GA evolved only the weights of its neural network controller. That was enough to produce working walking gaits.
+
+We adopt the same split, fixing the body and evolving the controller, but apply it to a harder task (climbing, which needs grip and weight transfer) with a more constrained controller (a four-phase state machine rather than a neural network). This means we don't need Sims-style co-evolution of body and brain, which gives us a smaller search space and a cleaner experiment.
+
+We treat this as a precedent, not proof:
+
+- **Walking isn't climbing.** Their robot always had legs on the ground. It never had to grip, carry its weight on one hand or pull itself up against gravity, so whether our robot can climb is still our own research question.
+- **The controller is different.** They evolved neural network weights. We evolve the settings of a hand-designed four-phase controller (joint targets, phase durations and servo gains). Both are a GA tuning numbers on a fixed controller structure, but ours is more constrained, which makes it easier to explain and fits our scope.
+- **Sim-to-real doesn't apply to us.** Their gaits also worked on a real robot, but we stay in simulation, so we don't rely on that part of the paper.
+
+What's new in our project is the task and the controller design, not the method.
+
+### Guarding against evolution "cheating"
+
+Lehman et al. (2020), *The Surprising Creativity of Digital Evolution*.
+
+Lehman et al. (2020) document many cases where evolved agents met the letter of their fitness function while defeating its intent, often by exploiting physics-simulator bugs. More than 50 researchers contributed first-hand accounts, many of them about physics-simulated creatures like the ones we're building. Two of its categories matter most to us:
+
+- **Misspecified fitness:** evolution optimises exactly what you measured, not what you meant.
+- **Exploiting simulator bugs:** creatures use numerical glitches, such as faulty collisions or energy appearing from nowhere, to score.
+
+We therefore defined fitness only on verified, sustained torso ascent while gripping, capped all actuator authority, and validated champions by replay. Each rule blocks a type of exploit the paper documents:
+
+| Our rule | What it prevents |
+|---|---|
+| Fitness uses torso height, not hand or head | Scoring by stretching an arm up without climbing |
+| Height must be held for at least 0.25 s with a grip | Jumping or flinging upward, then falling |
+| No teleporting, and grips only within 0.05 | Exploiting how grips are created |
+| Capped motor force and speed, and non-finite positions are rejected | Exploiting solver instability for "free" energy |
+| Inspect replays, not just scores | Catching exploits that the metrics don't |
+
+This is why our fitness function is more complicated than just measuring height. The paper suggests a simple height-based score would almost certainly be exploited.
