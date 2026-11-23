@@ -16,10 +16,9 @@ body:
   thigh: {length: 0.42, mass: 0.9} # m, kg
   shin: {length: 0.40, mass: 0.5} # m, kg
   hip_half_width: 0.07 # m
-  hip_limit: 0.6 # rad, each leg swings plus or minus this from straight down
+  hip_limit: 1.2 # rad, each leg swings plus or minus this from straight down
   knee_limit: 1.2 # rad, knee bends 0 to this
-  leg_stiffness: 15.0 # N*m/rad, passive spring holding each leg joint near straight
-  leg_damping: 1.5 # N*m*s/rad
+  leg_motor_max_force: 20.0 # N*m, hip and knee motors (legs swing in the air only, no foot contact)
   shoulder_out: 2.9 # rad, arm can swing out and down its own side to this
   shoulder_in: 0.4 # rad, and only this far across the body
   elbow_flex_limit: 2.4 # rad, elbow bends 0 to this
@@ -27,10 +26,20 @@ body:
   motor_max_rate: 6.0 # rad/s, speed cap
 
 ladder:
-  rung_pitch: 0.25 # m between rungs (D-04)
+  rung_pitch: 0.25 # m, first gap (D-04)
+  pitch_growth: 0.0 # m, each gap is this much wider than the one below
   rung_count: 20
   first_rung_y: 1.5 # m, height of the lowest rung
   rung_half_width: 0.3 # m, rungs span x in [-this, this]
+
+# the two ladders main.py evolves on; each overrides the ladder section above
+ladders:
+  L1: {} # even 0.25 m rungs
+  L2: {pitch_growth: 0.03} # gaps widen; past the static reach (0.333 m, gap 3) he must swing
+
+flight:
+  max_seconds: 0.6 # s both hands may be off (a jump) before it counts as a fall
+  max_drop: 1.0 # m below the start height that counts as a fall
 
 episode:
   seconds: 10.0 # simulated time per evaluation
@@ -53,7 +62,7 @@ ladder_ga:
   tournament_size: 3
   mutation_prob: 0.15 # per gene
   mutation_sigma: 0.1
-  max_evaluations: 1500 # about 0.011 s per episode, so about 20 s per run
+  max_evaluations: 5000 # per ladder; about 0.011 s per episode
 
 video:
   width: 640

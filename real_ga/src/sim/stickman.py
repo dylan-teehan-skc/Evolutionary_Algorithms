@@ -1,14 +1,9 @@
 import pymunk
 
 from src.climb.grip import grip_target, overloaded
-from src.climb.hang import JOINTS, clamp_rate, joint_limits
+from src.climb.hang import JOINTS, clamp_rate, joint_limits, rung_heights
 
 SIDES = ("right", "left")
-
-
-def rung_ys(config):
-    ladder = config["ladder"]
-    return [ladder["first_rung_y"] + k * ladder["rung_pitch"] for k in range(ladder["rung_count"])]
 
 
 class Stickman:
@@ -20,7 +15,7 @@ class Stickman:
         upper, fore = body["upper_arm"]["length"], body["forearm"]["length"]
         half = body["shoulder_half_width"]
         self.fore = fore
-        self.rungs = rung_ys(config)
+        self.rungs = rung_heights(config["ladder"])
 
         space = pymunk.Space()
         space.gravity = (0, body["gravity"])
@@ -61,23 +56,26 @@ class Stickman:
                 space.add(pymunk.RotaryLimitJoint(parent, child, lo, hi), motor)
                 self.motors.append(motor)
 
-        # passive legs: hips and knees are limited, spring-damped joints with no motors
+        # motorised legs: hips and knees swing in the air only (no foot contact), right then left
         hip_y = shoulder_y - torso_len
+        self.legs = []
         for side in (1, -1):
             x = side * body["hip_half_width"]
             th, sh = body["thigh"]["length"], body["shin"]["length"]
             thigh = make(body["thigh"], (x, hip_y - th / 2))
             shin = make(body["shin"], (x, hip_y - th - sh / 2))
             self.parts += [thigh, shin]
-            for parent, child, anchor_a, anchor_b, lo, hi in (
-                (self.torso, thigh, (x, -torso_len / 2), (0, th / 2), -body["hip_limit"], body["hip_limit"]),
-                (thigh, shin, (0, -th / 2), (0, sh / 2), -body["knee_limit"] * (side < 0), body["knee_limit"] * (side > 0)),
+            self.legs.append((self.torso, thigh, shin))
+            for parent, child, anchor_a, anchor_b in (
+                (self.torso, thigh, (x, -torso_len / 2), (0, th / 2)),
+                (thigh, shin, (0, -th / 2), (0, sh / 2)),
             ):
-                space.add(
-                    pymunk.PivotJoint(parent, child, anchor_a, anchor_b),
-                    pymunk.RotaryLimitJoint(parent, child, lo, hi),
-                    pymunk.DampedRotarySpring(parent, child, 0.0, body["leg_stiffness"], body["leg_damping"]),
-                )
+                lo, hi = next(limits)
+                motor = pymunk.SimpleMotor(parent, child, 0.0)
+                motor.max_force = body["leg_motor_max_force"]
+                space.add(pymunk.PivotJoint(parent, child, anchor_a, anchor_b),
+                          pymunk.RotaryLimitJoint(parent, child, lo, hi), motor)
+                self.motors.append(motor)
 
         self.grips = [None, None]  # (PivotJoint, rung index, pin) per side
         self.last_rung = [0, 0]
@@ -129,7 +127,7 @@ class Stickman:
 
     def observe(self):
         angles, speeds = [], []
-        for t_, a_, h_ in self.arms:
+        for t_, a_, h_ in self.arms + self.legs:
             angles += [a_.angle - t_.angle, h_.angle - a_.angle]
             speeds += [a_.angular_velocity - t_.angular_velocity, h_.angular_velocity - a_.angular_velocity]
         return {

@@ -14,3 +14,8 @@ def grip_target(tip, rung_ys, half_width, max_dist, min_rung=0):
 def overloaded(impulse, dt, max_force):
     # pymunk reports the last step's impulse; impulse / dt is the force the grip carried
     return impulse / dt > max_force
+
+
+def fallen(free_seconds, torso_drop, flight_max, max_drop):
+    # a jump may leave both hands free briefly; too long in the air, or too far below the start, is a fall
+    return free_seconds > flight_max or torso_drop > max_drop

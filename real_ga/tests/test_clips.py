@@ -1,6 +1,6 @@
 import unittest
 
-from src.climb.clips import improved_generations
+from src.climb.clips import improved_generations, next_version
 
 
 def history(scores):
@@ -19,6 +19,16 @@ class ClipSelectionTest(unittest.TestCase):
         scores = [h["best_score"] for h in improved_generations(history([0.0, 0.3, 0.2, 0.9]))]
         self.assertEqual(scores, sorted(scores))
         self.assertEqual(len(set(scores)), len(scores))
+
+
+class NextVersionTest(unittest.TestCase):
+    def test_first_video_takes_the_plain_name(self):
+        self.assertEqual(next_version("progression", []), "progression.mp4")
+
+    def test_never_reuses_an_existing_name(self):
+        self.assertEqual(next_version("progression", ["progression.mp4"]), "progression_v2.mp4")
+        self.assertEqual(next_version("progression", ["progression.mp4", "progression_v2.mp4", "x.json"]),
+                         "progression_v3.mp4")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 import unittest
 
-from src.climb.grip import grip_target, overloaded
+from src.climb.grip import fallen, grip_target, overloaded
 
 RUNGS = [1.5, 1.75, 2.0]
 
@@ -32,6 +32,18 @@ class OverloadTest(unittest.TestCase):
     def test_force_at_or_below_limit_holds(self):
         self.assertFalse(overloaded(impulse=0.4, dt=0.001, max_force=400.0))
         self.assertFalse(overloaded(impulse=0.0, dt=0.001, max_force=400.0))
+
+
+class FallenTest(unittest.TestCase):
+    def test_short_flight_is_not_a_fall(self):
+        self.assertFalse(fallen(free_seconds=0.6, torso_drop=0.2, flight_max=0.6, max_drop=1.0))
+
+    def test_flight_longer_than_the_limit_is_a_fall(self):
+        self.assertTrue(fallen(free_seconds=0.61, torso_drop=0.0, flight_max=0.6, max_drop=1.0))
+
+    def test_dropping_too_far_is_a_fall_even_while_holding(self):
+        self.assertTrue(fallen(free_seconds=0.0, torso_drop=1.01, flight_max=0.6, max_drop=1.0))
+        self.assertFalse(fallen(free_seconds=0.0, torso_drop=1.0, flight_max=0.6, max_drop=1.0))
 
 
 if __name__ == "__main__":

@@ -10,7 +10,9 @@ from src.climb.hang import (
     clamp_rate,
     hang_failures,
     joint_limits,
+    max_static_gap,
     reaches_next_rung,
+    rung_heights,
 )
 
 CONFIG = yaml.safe_load((Path(__file__).resolve().parents[1] / "config.yaml").read_text())
@@ -48,6 +50,25 @@ class ReachabilityTests(unittest.TestCase):
     def test_design_geometry_is_reachable(self):
         self.assertTrue(reaches_next_rung(CONFIG))
 
+    def test_max_static_gap_is_reach_minus_the_flexed_arm_drop(self):
+        # 0.9 * 0.62 m reach minus the 0.22543 m fully flexed drop (elbow at 2.4 rad)
+        self.assertAlmostEqual(max_static_gap(CONFIG), 0.9 * 0.62 - 0.22543, places=4)
+
+    def test_rung_heights_widen_by_the_growth_each_gap(self):
+        ladder = {"first_rung_y": 1.0, "rung_pitch": 0.25, "pitch_growth": 0.05, "rung_count": 4}
+        self.assertEqual([round(y, 6) for y in rung_heights(ladder)], [1.0, 1.25, 1.55, 1.9])
+
+    def test_zero_growth_gives_even_rungs(self):
+        ladder = {"first_rung_y": 0.0, "rung_pitch": 0.3, "pitch_growth": 0.0, "rung_count": 3}
+        self.assertEqual([round(y, 6) for y in rung_heights(ladder)], [0.0, 0.3, 0.6])
+
+    def test_l2_widens_past_static_reach_but_starts_reachable(self):
+        l2 = {**CONFIG["ladder"], **CONFIG["ladders"]["L2"]}
+        ys = rung_heights(l2)
+        gaps = [b - a for a, b in zip(ys, ys[1:])]
+        self.assertLessEqual(gaps[0], max_static_gap(CONFIG))
+        self.assertGreater(gaps[-1], max_static_gap(CONFIG))
+
     def test_rejects_too_large_pitch(self):
         self.assertFalse(reaches_next_rung(variant(ladder__rung_pitch=0.35)))
 
@@ -67,15 +88,14 @@ class ReachabilityTests(unittest.TestCase):
 
 class JointTests(unittest.TestCase):
     def test_joint_order(self):
-        self.assertEqual(
-            JOINTS, ("right_shoulder", "right_elbow", "left_shoulder", "left_elbow")
-        )
+        self.assertEqual(JOINTS, ("right_shoulder", "right_elbow", "left_shoulder", "left_elbow",
+                                  "right_hip", "right_knee", "left_hip", "left_knee"))
 
     def test_joint_limits_follow_joint_order(self):
         # angle 0 = arm straight up; each arm swings out and down its own side, barely across the body
         self.assertEqual(
             joint_limits(CONFIG["body"]),
-            [(-2.9, 0.4), (0, 2.4), (-0.4, 2.9), (-2.4, 0)],
+            [(-2.9, 0.4), (0, 2.4), (-0.4, 2.9), (-2.4, 0), (-1.2, 1.2), (0, 1.2), (-1.2, 1.2), (-1.2, 0)],
         )
 
     def test_clamp_rate(self):
