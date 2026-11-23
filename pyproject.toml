@@ -3,6 +3,10 @@ name = "evolutionary-algorithms"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "anytree>=2.13.0",
+    "imageio-ffmpeg>=0.8.1",
+    "pygame-ce>=2.5.8",
+    "pymunk>=7.3.1",
     "pyyaml>=6.0.3",
     "treelib>=1.8.0",
 ]

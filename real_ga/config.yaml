@@ -1,0 +1,63 @@
+seed: 42 # same seed + same config = same run
+
+
+# LadderLab body, ladder and checks: SI units (m, kg, s). Starting hypotheses, frozen after
+# Phase 4 and fixed within a controlled experiment (D-05).
+body:
+  gravity: -9.81 # m/s^2, applied on y
+  dt: 0.016666666666666666 # s, 1/60 (YAML does not evaluate expressions)
+  substeps: 8 # space.step calls per control tick, each dt/substeps; final value, hang verified stable
+  solver_iterations: 30 # D-02: raised before any mass change; final value. Rate-0 motors in the hand-rung closed loop are over-constrained, and 20 iterations with 1 substep tilted the hang in the planning spike; 30 with 8 substeps holds it
+  torso: {length: 0.50, mass: 4.0} # m, kg
+  upper_arm: {length: 0.32, mass: 0.35} # m, kg
+  forearm: {length: 0.30, mass: 0.25} # m, kg
+  shoulder_half_width: 0.09 # m, shoulder offset from the torso axis
+  head_radius: 0.1 # m, drawn on the torso; its mass is in the torso
+  thigh: {length: 0.42, mass: 0.9} # m, kg
+  shin: {length: 0.40, mass: 0.5} # m, kg
+  hip_half_width: 0.07 # m
+  hip_limit: 0.6 # rad, each leg swings plus or minus this from straight down
+  knee_limit: 1.2 # rad, knee bends 0 to this
+  leg_stiffness: 15.0 # N*m/rad, passive spring holding each leg joint near straight
+  leg_damping: 1.5 # N*m*s/rad
+  shoulder_out: 2.9 # rad, arm can swing out and down its own side to this
+  shoulder_in: 0.4 # rad, and only this far across the body
+  elbow_flex_limit: 2.4 # rad, elbow bends 0 to this
+  motor_max_force: 30.0 # N*m, explicit because pymunk defaults to infinity
+  motor_max_rate: 6.0 # rad/s, speed cap
+
+ladder:
+  rung_pitch: 0.25 # m between rungs (D-04)
+  rung_count: 20
+  first_rung_y: 1.5 # m, height of the lowest rung
+  rung_half_width: 0.3 # m, rungs span x in [-this, this]
+
+episode:
+  seconds: 10.0 # simulated time per evaluation
+
+grip:
+  max_dist: 0.04 # m, hand tip must be this close to a rung to grip (PHYS-04)
+  max_force: 400.0 # N, a grip carrying more than this breaks (PHYS-05)
+
+checks:
+  reach_margin: 0.9 # free hand must be within this fraction of full arm length
+  hang_seconds: 5.0 # s of simulated hang required
+  anchor_tol: 0.001 # m, hand-to-rung pin error
+  angle_tol: 0.05 # rad, solver slack beyond the joint limits
+  max_displacement: 0.05 # m, any part's drift from its start
+
+# real-coded GA on the ladder (Phase 6); main.py evolves with this then writes the video
+ladder_ga:
+  population_size: 30
+  elites: 2
+  tournament_size: 3
+  mutation_prob: 0.15 # per gene
+  mutation_sigma: 0.1
+  max_evaluations: 1500 # about 0.011 s per episode, so about 20 s per run
+
+video:
+  width: 640
+  height: 480
+  fps: 30
+  pixels_per_m: 220
+  fall_seconds: 1.5 # after both hands let go, keep showing the fall (not scored)

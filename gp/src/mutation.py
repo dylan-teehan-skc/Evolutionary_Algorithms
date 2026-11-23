@@ -1,21 +1,16 @@
 import random
 
-from treelib import Tree
+from anytree import Node
 
-from src.tree import FUNCTIONS, TERMINALS
+from src.tree import TERMINALS, graft, random_tree
 
 
 def grow_mutation(tree, max_tree_depth):
-    mutated = Tree(tree, deep=True)
-    leaf = random.choice(mutated.leaves())
-
-    if mutated.depth(leaf) < max_tree_depth:
-        leaf.data = random.choice(list(FUNCTIONS))
-        for _ in range(FUNCTIONS[leaf.data]):
-            terminal = random.choice(TERMINALS)
-            mutated.create_node(str(terminal), parent=leaf.identifier, data=terminal)
+    leaf = random.choice(tree.leaves)
+    if leaf.depth < max_tree_depth:
+        replacement = random_tree(1, full=True)  # one function with terminal children
     else:
         # swap for a different terminal; with a single terminal there is nothing to swap to
-        leaf.data = random.choice([t for t in TERMINALS if t != leaf.data] or TERMINALS)
-    leaf.tag = str(leaf.data)
-    return mutated
+        others = [t for t in TERMINALS if t != leaf.name] or TERMINALS
+        replacement = Node(random.choice(others))
+    return graft(tree, leaf, replacement)

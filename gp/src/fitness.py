@@ -6,14 +6,11 @@ from src.tree import PRIMITIVES
 MAX_ERROR = 1e12
 
 
-def evaluate(tree, inputs, node_id=None):
-    node_id = tree.root if node_id is None else node_id
-    symbol = tree[node_id].data
-    children = tree.children(node_id)
-    if not children:
-        return inputs.get(symbol, symbol)
-    arguments = [evaluate(tree, inputs, child.identifier) for child in children]
-    return PRIMITIVES[symbol][1](*arguments)
+def evaluate(node, inputs):
+    if node.is_leaf:
+        return inputs.get(node.name, node.name)
+    arguments = [evaluate(child, inputs) for child in node.children]
+    return PRIMITIVES[node.name][1](*arguments)
 
 
 def point_error(tree, x, y):
