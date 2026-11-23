@@ -95,3 +95,17 @@ What we noticed when comparing it to tournament:
 - Because of the shift, the worst individual in each generation can never be picked.
 
 We're keeping tournament as the default for both GA and GP.
+
+# Moving from GP to a real-world example
+
+## Possible direction: evolving virtual creatures
+
+We're considering simulating creatures and evolving them, based on Karl Sims' *Evolving Virtual Creatures* (SIGGRAPH '94).
+
+https://www.karlsims.com/papers/siggraph94.pdf
+
+In the paper, each creature's genotype is a directed graph. The graph describes both its body (3D blocks connected by joints) and the neural network that controls it, so the body and the brain evolve together. The creatures are run in a physics simulation and scored on tasks like swimming, walking, jumping and following a target.
+
+This ties in with what we already have. Like our GP trees, the genotype is a structure, not a fixed-length array, so evolution finds the shape itself rather than just tuning parameters. Our evolution loop and selection would stay the same. We'd need new representation, crossover, mutation and fitness code, and a physics simulation to measure fitness.
+
+We haven't decided yet, but it's an interesting avenue for us to go down.
